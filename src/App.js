@@ -7,7 +7,7 @@ export default class App extends React.Component {
   constructor(props){
     super(props)
     this.state={
-      results: [],
+      results: null,
       loading: false,
       active: false,
       error: null,
@@ -15,11 +15,29 @@ export default class App extends React.Component {
   };
 
   getResults = (user) => {
+    this.setState({loading: true})
+
     fetch(`https://api.github.com/users/${user}/repos`)
-    .then(this.setState({loading: true}))
-    .then(resData=> resData.json())
+    .then(res => {
+          this.setState({loading: false})
+          if(res.ok) {
+            return res.json()
+          }
+          throw new Error(res.statusText)
+    })
     .then(resData => {
-      this.setState({results: resData, loading: false, active: true})
+          if(resData.count === 0) {
+            this.setState({
+              results: null,
+              active: true,
+            })
+          } else {
+            this.setState({
+              results: resData, 
+              loading: false, 
+              active: true
+            })
+          }
     })
     .catch(err => this.setState({error: err.message}))
   }
